@@ -162,15 +162,7 @@ npm run build
 | `src/lib/quiz.service.ts` | Quiz CRUD, getQuizzes by conversation, getSaved, getQuizById, LEFT JOIN for nullable conversationId. |
 | `src/lib/gemini.server.ts` | Gemini prompts, `generateReply`, `generateQuizMcqs`. |
 | `src/db/` | Drizzle schema and `drizzle/` migrations. |
-| `scripts/check-quizzes-nullable.ts` | One-off: ensure `quizzes.conversation_id` allows NULL (see docs if delete chat fails). |
-| `docs/` | Feature and bug docs (e.g. DELETE_CHAT_AND_QUIZZES.md, BUG_DELETE_CHAT_CONVERSATION_ID_NOT_NULL.md). |
-
-## Documentation
-
-- `docs/DELETE_CHAT_AND_QUIZZES.md` — Delete chat feature and data flow.
-- `docs/BUG_DELETE_CHAT_CONVERSATION_ID_NOT_NULL.md` — If delete chat fails, cause and fix (run `scripts/check-quizzes-nullable.ts`).
-- `docs/CHAT_QUIZ_BAR_AND_REOPEN.md` — Quiz bar above chat to reopen panel.
-- `docs/QUIZ_PAGES_AND_ROUTES.md` — Quiz routes and pages.
+| `scripts/check-quizzes-nullable.ts` | One-off: ensure `quizzes.conversation_id` allows NULL (run it if deleting a chat fails). |
 
 ## Adding UI components (Shadcn)
 
