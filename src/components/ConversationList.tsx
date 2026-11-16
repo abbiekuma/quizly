@@ -1,6 +1,6 @@
 // src/components/ConversationList.tsx
 import { useServerFn } from '@tanstack/react-start'
-import { deleteConversation, getConversations } from '../lib/chat.server'
+import { deleteConversation, getConversations } from '../lib/chat.functions'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 const DELETE_CONFIRM_MESSAGE =

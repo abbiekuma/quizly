@@ -4,7 +4,7 @@ import { ConversationList } from '../components/ConversationList'
 import { ChatUI } from '../components/ChatUI'
 import { QuizPanel } from '../components/QuizPanel'
 import { useHomeChat } from '../contexts/HomeChatContext'
-import { getQuizQuestions, getQuizzes, updateQuizSaved } from '../lib/chat.server'
+import { getQuizQuestions, getQuizzes, updateQuizSaved } from '../lib/chat.functions'
 import { useServerFn } from '@tanstack/react-start'
 
 export const Route = createFileRoute('/')({ component: HomePage })

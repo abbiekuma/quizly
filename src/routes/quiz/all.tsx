@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
-import { getAllQuizzesGroupedByConversation } from '../../lib/chat.server'
+import { getAllQuizzesGroupedByConversation } from '../../lib/chat.functions'
 import { useEffect, useState } from 'react'
 
-export const Route = createFileRoute('/quiz/all' as any)({
+export const Route = createFileRoute('/quiz/all')({
   component: AllQuizzesPage,
 })
 

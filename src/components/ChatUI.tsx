@@ -2,7 +2,7 @@
 
 import { useServerFn } from '@tanstack/react-start'
 import { Link } from '@tanstack/react-router'
-import { getMessages, sendMessage } from '../lib/chat.server'
+import { getMessages, sendMessage } from '../lib/chat.functions'
 import type { ChatMode } from '../lib/gemini.server'
 import type { QuizAction } from '../lib/quiz.service'
 import { useGeminiKey } from '../contexts/GeminiKeyContext'

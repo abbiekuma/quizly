@@ -9,17 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as QuizRouteImport } from './routes/quiz'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as QuizRouteImport } from './routes/quiz'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as QuizIndexRouteImport } from './routes/quiz/index'
-import { Route as QuizSavedRouteImport } from './routes/quiz/saved'
-import { Route as QuizAllRouteImport } from './routes/quiz/all'
 import { Route as QuizQuizIdRouteImport } from './routes/quiz/$quizId'
+import { Route as QuizAllRouteImport } from './routes/quiz/all'
+import { Route as QuizSavedRouteImport } from './routes/quiz/saved'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuizRoute = QuizRouteImport.update({
@@ -27,9 +27,9 @@ const QuizRoute = QuizRouteImport.update({
   path: '/quiz',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuizIndexRoute = QuizIndexRouteImport.update({
@@ -37,9 +37,9 @@ const QuizIndexRoute = QuizIndexRouteImport.update({
   path: '/',
   getParentRoute: () => QuizRoute,
 } as any)
-const QuizSavedRoute = QuizSavedRouteImport.update({
-  id: '/saved',
-  path: '/saved',
+const QuizQuizIdRoute = QuizQuizIdRouteImport.update({
+  id: '/$quizId',
+  path: '/$quizId',
   getParentRoute: () => QuizRoute,
 } as any)
 const QuizAllRoute = QuizAllRouteImport.update({
@@ -47,9 +47,9 @@ const QuizAllRoute = QuizAllRouteImport.update({
   path: '/all',
   getParentRoute: () => QuizRoute,
 } as any)
-const QuizQuizIdRoute = QuizQuizIdRouteImport.update({
-  id: '/$quizId',
-  path: '/$quizId',
+const QuizSavedRoute = QuizSavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
   getParentRoute: () => QuizRoute,
 } as any)
 
@@ -92,12 +92,7 @@ export interface FileRouteTypes {
     | '/quiz/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
-    | '/settings'
-    | '/quiz/$quizId'
-    | '/quiz/all'
-    | '/quiz/saved'
-    | '/quiz'
+    '/' | '/settings' | '/quiz/$quizId' | '/quiz/all' | '/quiz/saved' | '/quiz'
   id:
     | '__root__'
     | '/'
@@ -117,11 +112,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quiz': {
@@ -131,11 +126,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuizRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quiz/': {
@@ -145,11 +140,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuizIndexRouteImport
       parentRoute: typeof QuizRoute
     }
-    '/quiz/saved': {
-      id: '/quiz/saved'
-      path: '/saved'
-      fullPath: '/quiz/saved'
-      preLoaderRoute: typeof QuizSavedRouteImport
+    '/quiz/$quizId': {
+      id: '/quiz/$quizId'
+      path: '/$quizId'
+      fullPath: '/quiz/$quizId'
+      preLoaderRoute: typeof QuizQuizIdRouteImport
       parentRoute: typeof QuizRoute
     }
     '/quiz/all': {
@@ -159,11 +154,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuizAllRouteImport
       parentRoute: typeof QuizRoute
     }
-    '/quiz/$quizId': {
-      id: '/quiz/$quizId'
-      path: '/$quizId'
-      fullPath: '/quiz/$quizId'
-      preLoaderRoute: typeof QuizQuizIdRouteImport
+    '/quiz/saved': {
+      id: '/quiz/saved'
+      path: '/saved'
+      fullPath: '/quiz/saved'
+      preLoaderRoute: typeof QuizSavedRouteImport
       parentRoute: typeof QuizRoute
     }
   }

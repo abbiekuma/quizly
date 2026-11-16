@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useServerFn } from '@tanstack/react-start'
-import { submitQuizAnswer } from '../lib/chat.server'
+import { submitQuizAnswer } from '../lib/chat.functions'
 import { ChevronDown, X } from 'lucide-react'
 
 type QuizQuestion = {

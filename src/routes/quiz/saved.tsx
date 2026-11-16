@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
-import { getSavedQuizzes } from '../../lib/chat.server'
+import { getSavedQuizzes } from '../../lib/chat.functions'
 import { useEffect, useState } from 'react'
 
-export const Route = createFileRoute('/quiz/saved' as any)({
+export const Route = createFileRoute('/quiz/saved')({
   component: SavedQuizzesPage,
 })
 

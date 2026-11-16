@@ -5,10 +5,10 @@ import {
   getQuizQuestions,
   submitQuizAnswer,
   updateQuizSaved,
-} from '../../lib/chat.server'
+} from '../../lib/chat.functions'
 import { useCallback, useEffect, useState } from 'react'
 
-export const Route = createFileRoute('/quiz/$quizId' as any)({
+export const Route = createFileRoute('/quiz/$quizId')({
   component: QuizDetailPage,
 })
 

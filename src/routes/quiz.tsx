@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, Link } from '@tanstack/react-router'
 import { Star, List } from 'lucide-react'
 
-export const Route = createFileRoute('/quiz' as any)({
+export const Route = createFileRoute('/quiz')({
   component: QuizLayout,
 })
 

@@ -8,14 +8,14 @@ import {
   type ReactNode,
 } from 'react'
 import { useServerFn } from '@tanstack/react-start'
-import { getGeminiKeyStatus } from '../lib/chat.server'
+import { getGeminiKeyStatus } from '../lib/chat.functions'
 import {
   clearGeminiApiKey,
   getGeminiApiKey,
   hasGeminiApiKey,
   maskGeminiApiKey,
   setGeminiApiKey,
-} from '../lib/gemini-key.client'
+} from '../lib/gemini-key'
 
 type GeminiKeyContextValue = {
   hasKey: boolean

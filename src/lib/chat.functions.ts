@@ -1,4 +1,4 @@
-// src/lib/chat.server.ts — only createServerFn; handlers load impl via dynamic import so client never loads db/gemini.
+// src/lib/chat.functions.ts — only createServerFn; handlers load impl via dynamic import so client never loads db/gemini.
 import { createServerFn } from '@tanstack/react-start'
 
 async function getSessionId() {
@@ -15,7 +15,7 @@ export const getConversations = createServerFn({ method: 'GET' }).handler(
 )
 
 export const getMessages = createServerFn({ method: 'GET' })
-  .inputValidator((data: { conversationId: number }) => data)
+  .validator((data: { conversationId: number }) => data)
   .handler(async ({ data }) => {
     const sessionId = await getSessionId()
     const m = await import('./chat.impl.server')
@@ -23,7 +23,7 @@ export const getMessages = createServerFn({ method: 'GET' })
   })
 
 export const getQuizQuestions = createServerFn({ method: 'GET' })
-  .inputValidator((data: { quizId: number }) => data)
+  .validator((data: { quizId: number }) => data)
   .handler(async ({ data }) => {
     const sessionId = await getSessionId()
     const q = await import('./quiz.service')
@@ -31,7 +31,7 @@ export const getQuizQuestions = createServerFn({ method: 'GET' })
   })
 
 export const getQuizzes = createServerFn({ method: 'GET' })
-  .inputValidator((data: { conversationId: number }) => data)
+  .validator((data: { conversationId: number }) => data)
   .handler(async ({ data }) => {
     const sessionId = await getSessionId()
     const q = await import('./quiz.service')
@@ -39,7 +39,7 @@ export const getQuizzes = createServerFn({ method: 'GET' })
   })
 
 export const submitQuizAnswer = createServerFn({ method: 'POST' })
-  .inputValidator(
+  .validator(
     (data: { questionId: number; userAnswer: string }) =>
       data as { questionId: number; userAnswer: string },
   )
@@ -50,7 +50,7 @@ export const submitQuizAnswer = createServerFn({ method: 'POST' })
   })
 
 export const updateQuizSaved = createServerFn({ method: 'POST' })
-  .inputValidator(
+  .validator(
     (data: { quizId: number; isSaved: boolean }) =>
       data as { quizId: number; isSaved: boolean },
   )
@@ -77,7 +77,7 @@ export const getSavedQuizzes = createServerFn({ method: 'GET' }).handler(
 )
 
 export const getQuizById = createServerFn({ method: 'GET' })
-  .inputValidator((data: { quizId: number }) => data)
+  .validator((data: { quizId: number }) => data)
   .handler(async ({ data }) => {
     const sessionId = await getSessionId()
     const q = await import('./quiz.service')
@@ -85,7 +85,7 @@ export const getQuizById = createServerFn({ method: 'GET' })
   })
 
 export const sendMessage = createServerFn({ method: 'POST' })
-  .inputValidator(
+  .validator(
     (data: {
       conversationId?: number
       userMessage: string
@@ -110,7 +110,7 @@ export const sendMessage = createServerFn({ method: 'POST' })
   })
 
 export const deleteConversation = createServerFn({ method: 'POST' })
-  .inputValidator((data: { conversationId: number }) => data)
+  .validator((data: { conversationId: number }) => data)
   .handler(async ({ data }) => {
     const sessionId = await getSessionId()
     const m = await import('./chat.impl.server')
