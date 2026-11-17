@@ -128,7 +128,16 @@ export async function ownerLoginImpl(passcodeInput: unknown): Promise<OwnerLogin
   if (!input || !safeEqual(input, passcode)) {
     return { ok: false, error: 'Incorrect passcode' }
   }
-  await moveGuestDataToOwner()
+  try {
+    await moveGuestDataToOwner()
+  } catch (err) {
+    // The transaction rolled back, so nothing was moved; don't log in either.
+    console.error('Owner login: moving guest data failed', err)
+    return {
+      ok: false,
+      error: "Couldn't move this browser's chats to owner mode. Please try again.",
+    }
+  }
   const expiresAt = setOwnerCookie(passcode)
   return { ok: true, expiresAt: new Date(expiresAt).toISOString() }
 }

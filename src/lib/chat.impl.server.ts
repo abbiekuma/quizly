@@ -68,6 +68,7 @@ export async function getMessagesImpl(
 
 export async function sendMessageImpl(
   sessionId: string,
+  isOwner: boolean,
   data: {
     conversationId?: number
     userMessage: string
@@ -80,7 +81,7 @@ export async function sendMessageImpl(
   const { conversationId: existingId, userMessage, mode } = data
   const quizAction = data.quizAction
   const activeQuizId = data.activeQuizId
-  const ai = resolveAiConfig(data.ai)
+  const ai = resolveAiConfig(data.ai, { isOwner })
   const modelUsed = `${formatModelUsed(ai.provider, ai.model)} (${mode})`
 
   let conversationId: number

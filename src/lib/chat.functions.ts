@@ -7,12 +7,18 @@ import {
   type AiRequestConfig,
 } from './ai/providers'
 
-/** The owner always uses the fixed id 'owner'; guests get a per-browser-session id. */
-async function getSessionId() {
+/** Who is calling: the owner (fixed id 'owner') or a guest (per-browser-session id). */
+async function getCaller(): Promise<{ sessionId: string; isOwner: boolean }> {
   const owner = await import('./owner.server')
-  if (owner.isOwnerRequest()) return owner.OWNER_SESSION_ID
+  if (owner.isOwnerRequest()) {
+    return { sessionId: owner.OWNER_SESSION_ID, isOwner: true }
+  }
   const m = await import('./anonymous-session.server')
-  return m.getOrCreateSessionId()
+  return { sessionId: m.getOrCreateSessionId(), isOwner: false }
+}
+
+async function getSessionId() {
+  return (await getCaller()).sessionId
 }
 
 export const getConversations = createServerFn({ method: 'GET' }).handler(
@@ -113,9 +119,9 @@ export const sendMessage = createServerFn({ method: 'POST' })
       },
   )
   .handler(async ({ data }) => {
-    const sessionId = await getSessionId()
+    const { sessionId, isOwner } = await getCaller()
     const m = await import('./chat.impl.server')
-    return m.sendMessageImpl(sessionId, data)
+    return m.sendMessageImpl(sessionId, isOwner, data)
   })
 
 export const deleteConversation = createServerFn({ method: 'POST' })
@@ -126,12 +132,17 @@ export const deleteConversation = createServerFn({ method: 'POST' })
     return m.deleteConversationImpl(sessionId, data)
   })
 
-/** Which providers have an API key in server env (e.g. .env.local). Never returns the keys. */
+/**
+ * Which providers have an API key in server env. Never returns the keys.
+ * Only the owner can use them, so guests always get all false (we don't reveal what is set).
+ */
 export const getAiKeyStatus = createServerFn({ method: 'GET' }).handler(
   async () => {
+    const owner = await import('./owner.server')
+    const isOwner = owner.isOwnerRequest()
     const status = {} as Record<AiProviderId, boolean>
     for (const id of AI_PROVIDER_IDS) {
-      status[id] = Boolean(process.env[AI_PROVIDERS[id].envVar]?.trim())
+      status[id] = isOwner && Boolean(process.env[AI_PROVIDERS[id].envVar]?.trim())
     }
     return { serverKeys: status }
   },
