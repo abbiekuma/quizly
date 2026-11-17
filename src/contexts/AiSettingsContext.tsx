@@ -15,6 +15,8 @@ import {
 } from 'react'
 import { useServerFn } from '@tanstack/react-start'
 import { getAiKeyStatus } from '../lib/chat.functions'
+import { getOwnerStatus } from '../lib/owner.functions'
+import type { OwnerStatus } from '../lib/owner.server'
 import {
   AI_PROVIDER_IDS,
   AI_PROVIDERS,
@@ -60,6 +62,10 @@ type AiSettingsContextValue = {
   removeKey: (provider: AiProviderId) => void
   /** What to send with each AI request. */
   getRequestConfig: () => AiRequestConfig
+  /** Owner mode status from the server (null until loaded). */
+  ownerStatus: OwnerStatus | null
+  /** Re-fetch server key status and owner status (after unlock / log out). */
+  refreshServerStatus: () => Promise<void>
 }
 
 const AiSettingsContext = createContext<AiSettingsContextValue | null>(null)
@@ -81,6 +87,8 @@ function readMaskedKeys(): Record<AiProviderId, string | null> {
 
 export function AiSettingsProvider({ children }: { children: ReactNode }) {
   const getAiKeyStatusFn = useServerFn(getAiKeyStatus)
+  const getOwnerStatusFn = useServerFn(getOwnerStatus)
+  const [ownerStatus, setOwnerStatus] = useState<OwnerStatus | null>(null)
   const [selection, setSelection] = useState<AiSelection>(defaultAiSelection)
   const [maskedKeys, setMaskedKeys] = useState(() => emptyRecord<string | null>(null))
   const [serverKeys, setServerKeys] = useState(() => emptyRecord(false))
@@ -95,14 +103,21 @@ export function AiSettingsProvider({ children }: { children: ReactNode }) {
     setStorageLoaded(true)
   }, [])
 
+  const refreshServerStatus = useCallback(async () => {
+    const [keys, owner] = await Promise.allSettled([
+      getAiKeyStatusFn(),
+      getOwnerStatusFn(),
+    ])
+    setServerKeys(
+      keys.status === 'fulfilled' ? keys.value.serverKeys : emptyRecord(false),
+    )
+    setOwnerStatus(owner.status === 'fulfilled' ? owner.value : null)
+    setServerStatusLoaded(true)
+  }, [getAiKeyStatusFn, getOwnerStatusFn])
+
   useEffect(() => {
-    getAiKeyStatusFn()
-      .then((status) => setServerKeys(status.serverKeys))
-      .catch(() => {
-        /* keep all false */
-      })
-      .finally(() => setServerStatusLoaded(true))
-  }, [getAiKeyStatusFn])
+    void refreshServerStatus()
+  }, [refreshServerStatus])
 
   const updateSelection = useCallback((next: (prev: AiSelection) => AiSelection) => {
     setSelection((prev) => {
@@ -186,6 +201,8 @@ export function AiSettingsProvider({ children }: { children: ReactNode }) {
       saveKey,
       removeKey,
       getRequestConfig,
+      ownerStatus,
+      refreshServerStatus,
     }),
     [
       storageLoaded,
@@ -200,6 +217,8 @@ export function AiSettingsProvider({ children }: { children: ReactNode }) {
       saveKey,
       removeKey,
       getRequestConfig,
+      ownerStatus,
+      refreshServerStatus,
     ],
   )
 
