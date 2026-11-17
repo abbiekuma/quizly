@@ -22,14 +22,44 @@ type Message = {
   modelUsed?: string | null
   createdAt: Date
   isLoading?: boolean
+  /** What the pending assistant message is waiting for. */
+  loadingKind?: 'chat' | 'quiz'
 }
 
-function AssistantLoadingBubble() {
+/** After this many seconds, tell the user the model may be busy. */
+const SLOW_AFTER_SECONDS = 20
+
+/**
+ * Shown while waiting for the AI. Progress is unknown (the server replies all at once),
+ * so the bar only shows that work is ongoing; elapsed time shows it is not stuck.
+ */
+function AiLoadingStatus({ kind }: { kind: 'chat' | 'quiz' }) {
+  const [seconds, setSeconds] = useState(0)
+
+  useEffect(() => {
+    const start = Date.now()
+    const id = window.setInterval(() => {
+      setSeconds(Math.floor((Date.now() - start) / 1000))
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  const label = kind === 'quiz' ? 'Generating quiz questions…' : 'Thinking…'
+
   return (
-    <div className="flex items-center gap-1 py-1" aria-label="Assistant is typing">
-      <span className="h-2 w-2 animate-bounce rounded-full bg-stone-400 [animation-delay:-0.3s]" />
-      <span className="h-2 w-2 animate-bounce rounded-full bg-stone-400 [animation-delay:-0.15s]" />
-      <span className="h-2 w-2 animate-bounce rounded-full bg-stone-400" />
+    <div className="py-1" role="status" aria-live="polite">
+      <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-muted">
+        <div className="h-full w-2/5 rounded-full bg-primary animate-indeterminate motion-reduce:animate-none" />
+      </div>
+      <p className="mt-2 text-sm text-stone-500">
+        {label} <span className="tabular-nums">{seconds}s</span>
+      </p>
+      {seconds >= SLOW_AFTER_SECONDS ? (
+        <p className="mt-1 text-xs text-stone-500">
+          Taking longer than usual — the model may be busy. You can wait, or
+          switch model next time.
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -173,6 +203,7 @@ export function ChatUI({
         mode: selectedMode,
         createdAt: new Date(),
         isLoading: true,
+        loadingKind: sendQuizAction === 'generate' ? 'quiz' : 'chat',
       },
     ])
 
@@ -304,7 +335,7 @@ export function ChatUI({
               }`}
             >
               {m.isLoading ? (
-                <AssistantLoadingBubble />
+                <AiLoadingStatus kind={m.loadingKind ?? 'chat'} />
               ) : (
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {m.content}
