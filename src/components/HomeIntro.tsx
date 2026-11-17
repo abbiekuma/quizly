@@ -26,7 +26,8 @@ export function HomeIntro() {
         Learn, then quiz yourself
       </h2>
       <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-        Quizly is a study companion powered by Gemini. Learn a topic in
+        Quizly is a study companion powered by the AI of your choice (Gemini,
+        Claude, OpenAI or DeepSeek). Learn a topic in
         chat, generate quizzes from that conversation, and review what you
         remember—all in one place.
       </p>
@@ -53,8 +54,8 @@ export function HomeIntro() {
       <p className="text-sm text-muted-foreground">
         Click{' '}
         <span className="font-medium text-foreground">New chat</span> on the
-        left, choose a mode below, and send your first message. Add your Gemini
-        API key in{' '}
+        left, choose a mode below, and send your first message. Add an API key
+        in{' '}
         <Link to="/settings" className="font-medium text-foreground underline">
           Settings
         </Link>{' '}

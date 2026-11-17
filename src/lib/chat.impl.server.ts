@@ -1,10 +1,11 @@
-// Server-only implementation: db, gemini. Imported only inside server function handlers.
+// Server-only implementation: db, AI. Imported only inside server function handlers.
 import { and, asc, desc, eq } from 'drizzle-orm'
 import { db } from '../db/index'
 import { conversations, messages, quizzes } from '../db/schema'
-import type { ChatMode, HistoryMessage } from './gemini.server'
-import { generateReply } from './gemini.server'
-import { resolveGeminiApiKey } from './gemini-api-key.server'
+import type { ChatMode, HistoryMessage } from './ai/generate.server'
+import { generateReply } from './ai/generate.server'
+import { resolveAiConfig } from './ai/keys.server'
+import { formatModelUsed, type AiRequestConfig } from './ai/providers'
 import type { QuizAction } from './quiz.service'
 import {
   buildQuizFollowUpUserMessage,
@@ -14,8 +15,6 @@ import {
   getQuizQuestionsImpl,
   shouldCreateStructuredQuiz,
 } from './quiz.service'
-
-const BEGINNER_MODEL_NAME = 'gemini-2.5-flash-lite'
 
 async function assertConversationAccess(
   conversationId: number,
@@ -73,7 +72,7 @@ export async function sendMessageImpl(
     conversationId?: number
     userMessage: string
     mode: ChatMode
-    apiKey?: string
+    ai: AiRequestConfig
     quizAction?: QuizAction
     activeQuizId?: number
   },
@@ -81,7 +80,8 @@ export async function sendMessageImpl(
   const { conversationId: existingId, userMessage, mode } = data
   const quizAction = data.quizAction
   const activeQuizId = data.activeQuizId
-  const apiKey = resolveGeminiApiKey(data.apiKey)
+  const ai = resolveAiConfig(data.ai)
+  const modelUsed = `${formatModelUsed(ai.provider, ai.model)} (${mode})`
 
   let conversationId: number
   if (existingId != null) {
@@ -109,7 +109,7 @@ export async function sendMessageImpl(
     const context = await getConversationContextForQuiz(conversationId)
     if (!context.trim()) {
       const history: HistoryMessage[] = []
-      replyText = await generateReply(userMessage, history, mode, apiKey)
+      replyText = await generateReply({ userMessage, history, mode, ai })
     } else if (shouldCreateStructuredQuiz(quizAction)) {
       try {
         const { quizId, replyText: quizReplyText } =
@@ -117,14 +117,14 @@ export async function sendMessageImpl(
             conversationId,
             context,
             sessionId,
-            apiKey,
+            ai,
           })
         await db.insert(messages).values({
           conversationId,
           role: 'assistant',
           content: quizReplyText,
           mode,
-          modelUsed: `${BEGINNER_MODEL_NAME} (${mode})`,
+          modelUsed,
         })
         return {
           conversationId,
@@ -162,7 +162,12 @@ export async function sendMessageImpl(
         }
       }
 
-      replyText = await generateReply(messageForAi, history, mode, apiKey)
+      replyText = await generateReply({
+        userMessage: messageForAi,
+        history,
+        mode,
+        ai,
+      })
     }
   } else {
     const rows = await db
@@ -174,7 +179,7 @@ export async function sendMessageImpl(
       role: r.role as 'user' | 'assistant',
       content: r.content,
     }))
-    replyText = await generateReply(userMessage, history, mode, apiKey)
+    replyText = await generateReply({ userMessage, history, mode, ai })
   }
 
   await db.insert(messages).values({
@@ -182,7 +187,7 @@ export async function sendMessageImpl(
     role: 'assistant',
     content: replyText,
     mode,
-    modelUsed: `${BEGINNER_MODEL_NAME} (${mode})`,
+    modelUsed,
   })
 
   return {

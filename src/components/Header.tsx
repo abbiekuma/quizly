@@ -10,12 +10,13 @@ import {
   Settings,
   X,
 } from 'lucide-react'
-import { useGeminiKey } from '../contexts/GeminiKeyContext'
+import { useAiSettings } from '../contexts/AiSettingsContext'
+import { AI_PROVIDERS } from '../lib/ai/providers'
 import { useHomeChat } from '../contexts/HomeChatContext'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
-  const { hasKey, hasServerEnvKey, isConfigured, maskedKey } = useGeminiKey()
+  const { ready, provider, model, isConfigured, keyStatus } = useAiSettings()
   const { goToNewChat } = useHomeChat()
   const location = useLocation()
   const navigate = useNavigate()
@@ -29,11 +30,8 @@ export default function Header() {
     }
   }
 
-  const headerKeyLabel = hasKey
-    ? maskedKey
-    : hasServerEnvKey
-      ? '.env.local'
-      : null
+  const providerLabel = AI_PROVIDERS[provider].label
+  const usingBrowserKey = Boolean(keyStatus[provider].maskedKey)
 
   const isHome = location.pathname === '/'
 
@@ -66,7 +64,7 @@ export default function Header() {
             </Link>
           </h1>
         </div>
-        {!isConfigured && isHome ? (
+        {!ready ? null : !isConfigured && isHome ? (
           <Link
             to="/settings"
             className="ml-4 flex min-w-0 shrink items-center gap-2 rounded-lg border border-accent/50 bg-accent/15 px-3 py-1.5 text-sm text-[#f5f0eb] transition-colors hover:bg-accent/25"
@@ -75,19 +73,19 @@ export default function Header() {
             <span className="truncate">
               <span className="hidden sm:inline">Add your </span>
               <span className="font-medium underline-offset-2 hover:underline">
-                Gemini API key
+                {providerLabel} API key
               </span>
               <span className="hidden md:inline"> in Settings</span>
             </span>
           </Link>
-        ) : isConfigured && headerKeyLabel ? (
+        ) : isConfigured ? (
           <Link
             to="/settings"
             className="ml-4 flex shrink-0 items-center gap-2 rounded-lg border border-[#c4aea6]/30 bg-black/15 px-3 py-1.5 text-sm text-[#f0e8e4] transition-colors hover:bg-black/25"
             title={
-              hasKey
-                ? 'Gemini API key saved for this browser session'
-                : 'Gemini API key from server environment (.env.local)'
+              usingBrowserKey
+                ? `${providerLabel} key saved for this browser session`
+                : `${providerLabel} key from server environment`
             }
           >
             <CheckCircle2
@@ -95,9 +93,9 @@ export default function Header() {
               className="shrink-0 text-[#d4bdb4]"
               aria-hidden
             />
-            <span className="hidden sm:inline">Gemini API</span>
-            <span className="font-mono text-xs text-[#e8ddd6]/90">
-              {headerKeyLabel}
+            <span className="hidden sm:inline">{providerLabel}</span>
+            <span className="max-w-[10rem] truncate font-mono text-xs text-[#e8ddd6]/90">
+              {model}
             </span>
           </Link>
         ) : null}

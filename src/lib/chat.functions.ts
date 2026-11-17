@@ -1,5 +1,11 @@
-// src/lib/chat.functions.ts — only createServerFn; handlers load impl via dynamic import so client never loads db/gemini.
+// src/lib/chat.functions.ts — only createServerFn; handlers load impl via dynamic import so client never loads db/AI SDK.
 import { createServerFn } from '@tanstack/react-start'
+import {
+  AI_PROVIDER_IDS,
+  AI_PROVIDERS,
+  type AiProviderId,
+  type AiRequestConfig,
+} from './ai/providers'
 
 async function getSessionId() {
   const m = await import('./anonymous-session.server')
@@ -90,7 +96,7 @@ export const sendMessage = createServerFn({ method: 'POST' })
       conversationId?: number
       userMessage: string
       mode: 'beginner' | 'deep-dive' | 'quiz'
-      apiKey?: string
+      ai: AiRequestConfig
       quizAction?: 'generate' | 'follow-up'
       activeQuizId?: number
     }) =>
@@ -98,7 +104,7 @@ export const sendMessage = createServerFn({ method: 'POST' })
         conversationId?: number
         userMessage: string
         mode: 'beginner' | 'deep-dive' | 'quiz'
-        apiKey?: string
+        ai: AiRequestConfig
         quizAction?: 'generate' | 'follow-up'
         activeQuizId?: number
       },
@@ -117,9 +123,13 @@ export const deleteConversation = createServerFn({ method: 'POST' })
     return m.deleteConversationImpl(sessionId, data)
   })
 
-/** Whether GEMINI_API_KEY is set in server env (e.g. .env.local). Does not expose the key. */
-export const getGeminiKeyStatus = createServerFn({ method: 'GET' }).handler(
-  async () => ({
-    hasServerEnvKey: Boolean(process.env.GEMINI_API_KEY?.trim()),
-  }),
+/** Which providers have an API key in server env (e.g. .env.local). Never returns the keys. */
+export const getAiKeyStatus = createServerFn({ method: 'GET' }).handler(
+  async () => {
+    const status = {} as Record<AiProviderId, boolean>
+    for (const id of AI_PROVIDER_IDS) {
+      status[id] = Boolean(process.env[AI_PROVIDERS[id].envVar]?.trim())
+    }
+    return { serverKeys: status }
+  },
 )

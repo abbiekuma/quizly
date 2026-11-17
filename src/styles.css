@@ -220,3 +220,17 @@ samp {
     font-weight: 500;
   }
 }
+
+/* Indeterminate loading bar (AI is working; real progress is unknown). Used as `animate-indeterminate`. */
+@theme {
+  --animate-indeterminate: indeterminate 1.4s ease-in-out infinite;
+
+  @keyframes indeterminate {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(250%);
+    }
+  }
+}

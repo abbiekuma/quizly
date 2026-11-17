@@ -3,14 +3,16 @@
 import { useServerFn } from '@tanstack/react-start'
 import { Link } from '@tanstack/react-router'
 import { getMessages, sendMessage } from '../lib/chat.functions'
-import type { ChatMode } from '../lib/gemini.server'
+import type { ChatMode } from '../lib/prompts.server'
 import type { QuizAction } from '../lib/quiz.service'
-import { useGeminiKey } from '../contexts/GeminiKeyContext'
+import { useAiSettings } from '../contexts/AiSettingsContext'
+import { AI_PROVIDERS } from '../lib/ai/providers'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { HomeIntro } from './HomeIntro'
+import { ModelSwitcher } from './ModelSwitcher'
 
 type Message = {
   id: number
@@ -20,14 +22,44 @@ type Message = {
   modelUsed?: string | null
   createdAt: Date
   isLoading?: boolean
+  /** What the pending assistant message is waiting for. */
+  loadingKind?: 'chat' | 'quiz'
 }
 
-function AssistantLoadingBubble() {
+/** After this many seconds, tell the user the model may be busy. */
+const SLOW_AFTER_SECONDS = 20
+
+/**
+ * Shown while waiting for the AI. Progress is unknown (the server replies all at once),
+ * so the bar only shows that work is ongoing; elapsed time shows it is not stuck.
+ */
+function AiLoadingStatus({ kind }: { kind: 'chat' | 'quiz' }) {
+  const [seconds, setSeconds] = useState(0)
+
+  useEffect(() => {
+    const start = Date.now()
+    const id = window.setInterval(() => {
+      setSeconds(Math.floor((Date.now() - start) / 1000))
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  const label = kind === 'quiz' ? 'Generating quiz questions…' : 'Thinking…'
+
   return (
-    <div className="flex items-center gap-1 py-1" aria-label="Assistant is typing">
-      <span className="h-2 w-2 animate-bounce rounded-full bg-stone-400 [animation-delay:-0.3s]" />
-      <span className="h-2 w-2 animate-bounce rounded-full bg-stone-400 [animation-delay:-0.15s]" />
-      <span className="h-2 w-2 animate-bounce rounded-full bg-stone-400" />
+    <div className="py-1" role="status" aria-live="polite">
+      <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-muted">
+        <div className="h-full w-2/5 rounded-full bg-primary animate-indeterminate motion-reduce:animate-none" />
+      </div>
+      <p className="mt-2 text-sm text-stone-500">
+        {label} <span className="tabular-nums">{seconds}s</span>
+      </p>
+      {seconds >= SLOW_AFTER_SECONDS ? (
+        <p className="mt-1 text-xs text-stone-500">
+          Taking longer than usual — the model may be busy. You can wait, or
+          switch model next time.
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -43,7 +75,7 @@ function modeLabel(mode: string | null | undefined): string {
   return MODE_LABELS[mode] ?? mode
 }
 
-// Get mode for display: from message.mode, or for old assistant messages parse from modelUsed e.g. "gemini-2.5-flash-lite (beginner)"
+// Get mode for display: from message.mode, or for old assistant messages parse from modelUsed e.g. "google/gemini-flash-latest (beginner)"
 function getDisplayMode(m: Message): string | null {
   if (m.mode) return m.mode
   if (m.role === 'assistant' && m.modelUsed) {
@@ -98,7 +130,7 @@ export function ChatUI({
 }: Props) {
   const sendMessageFn = useServerFn(sendMessage)
   const getMessagesFn = useServerFn(getMessages)
-  const { hasKey, hasServerEnvKey, isConfigured, getKeyForRequest } = useGeminiKey()
+  const { ready, provider, isConfigured, getRequestConfig } = useAiSettings()
   const canSend = isConfigured
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -171,6 +203,7 @@ export function ChatUI({
         mode: selectedMode,
         createdAt: new Date(),
         isLoading: true,
+        loadingKind: sendQuizAction === 'generate' ? 'quiz' : 'chat',
       },
     ])
 
@@ -180,7 +213,7 @@ export function ChatUI({
           conversationId: conversationId ?? undefined,
           userMessage: text,
           mode: selectedMode,
-          apiKey: getKeyForRequest(),
+          ai: getRequestConfig(),
           quizAction: sendQuizAction,
           activeQuizId: sendFollowUpQuizId,
         },
@@ -237,13 +270,14 @@ export function ChatUI({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-chat">
-      {!isConfigured ? (
+      {ready && !isConfigured ? (
         <div className="flex-shrink-0 border-b border-primary-muted bg-primary-muted/50 px-4 py-3 text-sm text-primary-muted-foreground">
-          Add your Gemini API key in{' '}
+          Add your {AI_PROVIDERS[provider].label} API key in{' '}
           <Link to="/settings" className="font-medium underline hover:text-primary-muted-foreground">
             Settings
           </Link>{' '}
-          to start chatting. Keys stay in this browser session only.
+          (or switch to a provider that has one) to start chatting. Keys stay
+          in this browser session only.
         </div>
       ) : null}
       {conversationId != null && quizzes.length > 0 && onOpenQuiz != null && (
@@ -301,7 +335,7 @@ export function ChatUI({
               }`}
             >
               {m.isLoading ? (
-                <AssistantLoadingBubble />
+                <AiLoadingStatus kind={m.loadingKind ?? 'chat'} />
               ) : (
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {m.content}
@@ -390,6 +424,7 @@ export function ChatUI({
               </button>
             )
           })}
+          <ModelSwitcher disabled={loading} />
         </div>
         <div className="flex gap-2">
           <input

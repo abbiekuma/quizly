@@ -9,7 +9,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import Header from '../components/Header'
-import { GeminiKeyProvider } from '../contexts/GeminiKeyContext'
+import { AiSettingsProvider } from '../contexts/AiSettingsContext'
 import { HomeChatProvider } from '../contexts/HomeChatContext'
 
 import appCss from '../styles.css?url'
@@ -57,12 +57,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <GeminiKeyProvider>
+        <AiSettingsProvider>
           <HomeChatProvider>
             <Header />
             {children}
           </HomeChatProvider>
-        </GeminiKeyProvider>
+        </AiSettingsProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',

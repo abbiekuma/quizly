@@ -1,5 +1,5 @@
-// src/lib/gemini.prompts.server.ts — All Gemini prompt copy and mode-to-prompt mapping.
-// Used only by gemini.server.ts (server-side).
+// src/lib/prompts.server.ts — All AI prompt copy and mode-to-prompt mapping (provider-agnostic).
+// Used only by ai/generate.server.ts (server-side).
 
 export type ChatMode = 'beginner' | 'deep-dive' | 'quiz'
 
@@ -28,11 +28,10 @@ Guidelines:
 - Do not output full MCQ lists or answer keys in chat unless the user explicitly asks you to explain a specific question they are working on.
 - Language: Respond in the user's preferred language.`
 
-/** System instruction for structured MCQ generation only. Output must be a single JSON array, no prose. */
-export const QUIZ_MCQ_GENERATION_SYSTEM = `You are a quiz generator. Your only job is to output a JSON array of multiple-choice questions (MCQs) based on the learning conversation provided.
+/** System instruction for MCQ generation. The response format is enforced by a structured-output schema. */
+export const QUIZ_MCQ_GENERATION_SYSTEM = `You are a quiz generator. Your job is to write multiple-choice questions (MCQs) based on the learning conversation provided.
 Rules:
-- Output ONLY a single JSON array. No markdown code fences, no explanation, no other text.
-- Each element of the array must have exactly: "question" (string, the question text), "options" (object with keys "A", "B", "C", "D" and string values), "correctAnswer" (string, one of "A", "B", "C", "D").
+- Each question has exactly four options (A, B, C, D) and exactly one correct answer.
 - Generate 3 to 5 questions that test the key concepts from the conversation.
 - Use the same language as the conversation (e.g. Chinese if the conversation is in Chinese).`
 
@@ -41,9 +40,9 @@ export const QUIZ_MCQ_CONTEXT_PLACEHOLDER = '{{CONVERSATION_CONTEXT}}'
 
 /**
  * Full user message template for quiz MCQ generation (「考我」flow).
- * Replace QUIZ_MCQ_CONTEXT_PLACEHOLDER with the conversation context string before sending to Gemini.
+ * Replace QUIZ_MCQ_CONTEXT_PLACEHOLDER with the conversation context string before sending to the model.
  */
-export const QUIZ_MCQ_USER_MESSAGE_TEMPLATE = `Based on the following learning conversation, generate 3 to 5 multiple-choice questions. Output ONLY a JSON array. Each item must have "question", "options" (object with A, B, C, D), and "correctAnswer" (one of A, B, C, D). Use the same language as the conversation.
+export const QUIZ_MCQ_USER_MESSAGE_TEMPLATE = `Based on the following learning conversation, generate 3 to 5 multiple-choice questions. Use the same language as the conversation.
 
 ---
 
