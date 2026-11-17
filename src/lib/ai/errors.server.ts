@@ -18,6 +18,19 @@ function unwrapApiCallError(err: unknown): APICallError | undefined {
   return undefined
 }
 
+/** True if the call was stopped by our timeout (the SDK aborts with a "TimeoutError"). */
+function isTimeoutError(err: unknown): boolean {
+  const candidates = [
+    err,
+    (err as { lastError?: unknown } | null)?.lastError,
+    (err as { cause?: unknown } | null)?.cause,
+  ]
+  return candidates.some((e) => {
+    const name = (e as { name?: unknown } | null)?.name
+    return name === 'TimeoutError' || name === 'AbortError'
+  })
+}
+
 export function toFriendlyAiError(
   err: unknown,
   provider: AiProviderId,
@@ -26,6 +39,21 @@ export function toFriendlyAiError(
   if (err instanceof AiUserError) return err
 
   const label = AI_PROVIDERS[provider].label
+
+  if (isTimeoutError(err)) {
+    return new AiUserError(
+      `${label} took too long to respond. Try again, or switch to a faster model.`,
+    )
+  }
+
+  // Structured output could not be parsed (wrong format, or cut off by maxOutputTokens).
+  // The SDK does not export this class, so match by name.
+  if ((err as { name?: unknown } | null)?.name === 'AI_NoObjectGeneratedError') {
+    return new AiUserError(
+      `${label} returned the quiz in an unexpected format. Please try again, or switch model.`,
+    )
+  }
+
   const apiError = unwrapApiCallError(err)
   const status = apiError?.statusCode
 
@@ -42,6 +70,13 @@ export function toFriendlyAiError(
   if (status === 404) {
     return new AiUserError(
       `${label} model "${model}" was not found. Pick another model in Settings.`,
+    )
+  }
+
+  // 503 = overloaded (Gemini "high demand"), 529 = Anthropic "overloaded", 500/502/504 = provider-side trouble.
+  if (status === 503 || status === 529 || status === 500 || status === 502 || status === 504) {
+    return new AiUserError(
+      `${label} is busy right now. Try again in a moment, or switch to another model.`,
     )
   }
 
