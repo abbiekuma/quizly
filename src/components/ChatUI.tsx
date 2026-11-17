@@ -3,7 +3,7 @@
 import { useServerFn } from '@tanstack/react-start'
 import { Link } from '@tanstack/react-router'
 import { getMessages, sendMessage } from '../lib/chat.functions'
-import type { ChatMode } from '../lib/gemini.server'
+import type { ChatMode } from '../lib/prompts.server'
 import type { QuizAction } from '../lib/quiz.service'
 import { useGeminiKey } from '../contexts/GeminiKeyContext'
 import { Loader2 } from 'lucide-react'

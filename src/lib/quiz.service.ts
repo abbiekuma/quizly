@@ -2,7 +2,8 @@
 import { and, asc, desc, eq, isNotNull, isNull, ne, or } from 'drizzle-orm'
 import { db } from '../db/index'
 import { conversations, messages, quizQuestions, quizzes } from '../db/schema'
-import { generateQuizMcqs } from './gemini.server'
+import { generateQuizMcqs } from './ai/generate.server'
+import type { ResolvedAiConfig } from './ai/keys.server'
 
 export type QuizAction = 'generate' | 'follow-up'
 
@@ -236,10 +237,10 @@ export async function createQuizFromContext(data: {
   conversationId: number
   context: string
   sessionId: string
-  apiKey: string
+  ai: ResolvedAiConfig
 }): Promise<{ quizId: number; replyText: string }> {
-  const { conversationId, context, sessionId, apiKey } = data
-  const mcqs = await generateQuizMcqs(context, apiKey)
+  const { conversationId, context, sessionId, ai } = data
+  const mcqs = await generateQuizMcqs(context, ai)
   const [quizRow] = await db
     .insert(quizzes)
     .values({

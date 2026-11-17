@@ -17,6 +17,10 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "4.0.105",
+    "@ai-sdk/deepseek": "3.0.87",
+    "@ai-sdk/google": "4.0.121",
+    "@ai-sdk/openai": "4.0.118",
     "@google/generative-ai": "^0.24.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.0.6",
@@ -26,6 +30,7 @@
     "@tanstack/react-router-ssr-query": "1.167.3",
     "@tanstack/react-start": "1.169.5",
     "@tanstack/router-plugin": "1.169.0",
+    "ai": "7.0.173",
     "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -41,7 +46,8 @@
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.0.6",
     "tw-animate-css": "^1.3.6",
-    "vite-tsconfig-paths": "^6.0.2"
+    "vite-tsconfig-paths": "^6.0.2",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@tanstack/devtools-vite": "0.8.6",

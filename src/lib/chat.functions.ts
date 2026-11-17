@@ -1,5 +1,6 @@
-// src/lib/chat.functions.ts — only createServerFn; handlers load impl via dynamic import so client never loads db/gemini.
+// src/lib/chat.functions.ts — only createServerFn; handlers load impl via dynamic import so client never loads db/AI SDK.
 import { createServerFn } from '@tanstack/react-start'
+import type { AiRequestConfig } from './ai/providers'
 
 async function getSessionId() {
   const m = await import('./anonymous-session.server')
@@ -90,7 +91,9 @@ export const sendMessage = createServerFn({ method: 'POST' })
       conversationId?: number
       userMessage: string
       mode: 'beginner' | 'deep-dive' | 'quiz'
+      /** @deprecated Old request shape (Gemini key only); use `ai`. */
       apiKey?: string
+      ai?: AiRequestConfig
       quizAction?: 'generate' | 'follow-up'
       activeQuizId?: number
     }) =>
@@ -99,6 +102,7 @@ export const sendMessage = createServerFn({ method: 'POST' })
         userMessage: string
         mode: 'beginner' | 'deep-dive' | 'quiz'
         apiKey?: string
+        ai?: AiRequestConfig
         quizAction?: 'generate' | 'follow-up'
         activeQuizId?: number
       },
