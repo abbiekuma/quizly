@@ -7,7 +7,10 @@ import {
   type AiRequestConfig,
 } from './ai/providers'
 
+/** The owner always uses the fixed id 'owner'; guests get a per-browser-session id. */
 async function getSessionId() {
+  const owner = await import('./owner.server')
+  if (owner.isOwnerRequest()) return owner.OWNER_SESSION_ID
   const m = await import('./anonymous-session.server')
   return m.getOrCreateSessionId()
 }
