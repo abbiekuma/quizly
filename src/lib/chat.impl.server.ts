@@ -1,4 +1,4 @@
-// Server-only implementation: db, gemini. Imported only inside server function handlers.
+// Server-only implementation: db, AI. Imported only inside server function handlers.
 import { and, asc, desc, eq } from 'drizzle-orm'
 import { db } from '../db/index'
 import { conversations, messages, quizzes } from '../db/schema'
@@ -72,9 +72,7 @@ export async function sendMessageImpl(
     conversationId?: number
     userMessage: string
     mode: ChatMode
-    /** @deprecated Old request shape (Gemini key only); use `ai`. */
-    apiKey?: string
-    ai?: AiRequestConfig
+    ai: AiRequestConfig
     quizAction?: QuizAction
     activeQuizId?: number
   },
@@ -82,7 +80,7 @@ export async function sendMessageImpl(
   const { conversationId: existingId, userMessage, mode } = data
   const quizAction = data.quizAction
   const activeQuizId = data.activeQuizId
-  const ai = resolveAiConfig(data.ai, data.apiKey)
+  const ai = resolveAiConfig(data.ai)
   const modelUsed = `${formatModelUsed(ai.provider, ai.model)} (${mode})`
 
   let conversationId: number

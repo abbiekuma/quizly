@@ -1,7 +1,6 @@
 // src/lib/ai/keys.server.ts — decide which provider/model/key a request uses. Server only.
 import {
   AI_PROVIDERS,
-  DEFAULT_AI_PROVIDER,
   isAiProviderId,
   type AiProviderId,
   type AiRequestConfig,
@@ -32,23 +31,11 @@ export function resolveApiKey(
   )
 }
 
-/**
- * Validate the client's AI config and attach a usable key.
- * `legacyApiKey` supports the old request shape (Gemini key only) until the client sends `ai`.
- */
-export function resolveAiConfig(
-  ai: AiRequestConfig | undefined,
-  legacyApiKey?: string,
-): ResolvedAiConfig {
+/** Validate the client's AI config and attach a usable key. */
+export function resolveAiConfig(ai: AiRequestConfig | undefined): ResolvedAiConfig {
   if (!ai) {
-    const provider = DEFAULT_AI_PROVIDER
-    return {
-      provider,
-      model: AI_PROVIDERS[provider].defaultModel,
-      apiKey: resolveApiKey(provider, legacyApiKey),
-    }
+    throw new AiUserError('Missing AI settings. Please reload the page and try again.')
   }
-
   if (!isAiProviderId(ai.provider)) {
     throw new AiUserError(`Unknown AI provider: ${String(ai.provider)}`)
   }

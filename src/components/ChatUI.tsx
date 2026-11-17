@@ -5,12 +5,14 @@ import { Link } from '@tanstack/react-router'
 import { getMessages, sendMessage } from '../lib/chat.functions'
 import type { ChatMode } from '../lib/prompts.server'
 import type { QuizAction } from '../lib/quiz.service'
-import { useGeminiKey } from '../contexts/GeminiKeyContext'
+import { useAiSettings } from '../contexts/AiSettingsContext'
+import { AI_PROVIDERS } from '../lib/ai/providers'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { HomeIntro } from './HomeIntro'
+import { ModelSwitcher } from './ModelSwitcher'
 
 type Message = {
   id: number
@@ -43,7 +45,7 @@ function modeLabel(mode: string | null | undefined): string {
   return MODE_LABELS[mode] ?? mode
 }
 
-// Get mode for display: from message.mode, or for old assistant messages parse from modelUsed e.g. "gemini-2.5-flash-lite (beginner)"
+// Get mode for display: from message.mode, or for old assistant messages parse from modelUsed e.g. "google/gemini-flash-latest (beginner)"
 function getDisplayMode(m: Message): string | null {
   if (m.mode) return m.mode
   if (m.role === 'assistant' && m.modelUsed) {
@@ -98,7 +100,7 @@ export function ChatUI({
 }: Props) {
   const sendMessageFn = useServerFn(sendMessage)
   const getMessagesFn = useServerFn(getMessages)
-  const { hasKey, hasServerEnvKey, isConfigured, getKeyForRequest } = useGeminiKey()
+  const { ready, provider, isConfigured, getRequestConfig } = useAiSettings()
   const canSend = isConfigured
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -180,7 +182,7 @@ export function ChatUI({
           conversationId: conversationId ?? undefined,
           userMessage: text,
           mode: selectedMode,
-          apiKey: getKeyForRequest(),
+          ai: getRequestConfig(),
           quizAction: sendQuizAction,
           activeQuizId: sendFollowUpQuizId,
         },
@@ -237,13 +239,14 @@ export function ChatUI({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-chat">
-      {!isConfigured ? (
+      {ready && !isConfigured ? (
         <div className="flex-shrink-0 border-b border-primary-muted bg-primary-muted/50 px-4 py-3 text-sm text-primary-muted-foreground">
-          Add your Gemini API key in{' '}
+          Add your {AI_PROVIDERS[provider].label} API key in{' '}
           <Link to="/settings" className="font-medium underline hover:text-primary-muted-foreground">
             Settings
           </Link>{' '}
-          to start chatting. Keys stay in this browser session only.
+          (or switch to a provider that has one) to start chatting. Keys stay
+          in this browser session only.
         </div>
       ) : null}
       {conversationId != null && quizzes.length > 0 && onOpenQuiz != null && (
@@ -390,6 +393,7 @@ export function ChatUI({
               </button>
             )
           })}
+          <ModelSwitcher disabled={loading} />
         </div>
         <div className="flex gap-2">
           <input

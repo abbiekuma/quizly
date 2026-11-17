@@ -107,7 +107,7 @@ type QuizQuestionRow = {
   status?: string
 }
 
-/** Format panel quiz rows for Gemini when the user asks follow-ups in Quiz mode. */
+/** Format panel quiz rows for the AI when the user asks follow-ups in Quiz mode. */
 export function formatQuizQuestionsForPrompt(questions: QuizQuestionRow[]): string {
   const lines = [
     'The user is taking the following quiz in the side panel.',
