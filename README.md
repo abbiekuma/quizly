@@ -4,11 +4,11 @@ An AI-powered study app: learn a topic in **Beginner** and **Deep-dive** modes, 
 
 **Live demo:** [https://ai-study-helper-eta.vercel.app/](https://ai-study-helper-eta.vercel.app/)
 
-> Portfolio demo — chats and quizzes are scoped to your browser session. Add your own [Gemini API key](https://ai.google.dev/) in **Settings** to use the app (BYOK; keys stay in `sessionStorage` for the session).
+> Portfolio demo — chats and quizzes are scoped to your browser session. Add your own API key for **Gemini, Claude, OpenAI or DeepSeek** in **Settings** to use the app (BYOK; keys stay in `sessionStorage` for the session).
 
 ## Using the live site
 
-1. Open the [live demo](https://ai-study-helper-eta.vercel.app/) and add your Gemini API key in **Settings** (or use the reminder in the home page header).
+1. Open the [live demo](https://ai-study-helper-eta.vercel.app/), go to **Settings**, pick a provider and model, and add that provider's API key (or use the reminder in the home page header). You can switch models any time from the dropdown next to the chat box.
 2. Click **New chat** in the left sidebar — or click **Quizly** in the top bar to return to the home / new-chat screen.
 3. Choose **Beginner** or **Deep-dive**, send messages, and learn a topic.
 4. Switch to **Quiz** and send a message. If the chat has learning content, the app generates multiple-choice questions and opens the **quiz panel** (left of the chat; drag the divider to resize).
@@ -27,6 +27,7 @@ An AI-powered study app: learn a topic in **Beginner** and **Deep-dive** modes, 
 ## Features
 
 - **Three modes**: Beginner (simple), Deep-dive (detailed), Quiz (generate and take MCQs).
+- **Choose your AI**: Gemini, Claude, OpenAI or DeepSeek, with preset or custom model ids. Quick switch next to the chat box lists providers that have a key.
 - **Conversations**: Multiple chats; each can mix modes. **New chat** in the sidebar, or click **Quizly** in the header to reset. Delete a chat from the list (⋯ → Delete); quizzes you saved stay in “Saved”.
 - **Quiz panel**: Opens when a quiz is selected for the current chat; resizable (left of chat). Close it with ✕ and reopen from the **Quizzes** bar above the chat. Header shows which chat the quiz came from.
 - **Save quiz**: Mark a quiz as saved so it appears under **Quizzes → Saved** and survives when you delete its chat.
@@ -37,7 +38,7 @@ An AI-powered study app: learn a topic in **Beginner** and **Deep-dive** modes, 
 
 - **Frontend**: React, TanStack Start (Router, Server Functions), Tailwind CSS.
 - **Backend**: TanStack Server Functions, Drizzle ORM, PostgreSQL.
-- **AI**: Google Gemini API (`gemini-2.5-flash-lite`; different system prompts per mode).
+- **AI**: [Vercel AI SDK](https://ai-sdk.dev) with Gemini, Claude, OpenAI and DeepSeek providers (different system prompts per mode; quizzes use structured output validated with Zod).
 
 ## Deploying to Vercel (portfolio demo)
 
@@ -47,16 +48,16 @@ An AI-powered study app: learn a topic in **Beginner** and **Deep-dive** modes, 
 
 - **App**: TanStack Start + Nitro on Vercel (Serverless Functions).
 - **Database**: [Neon](https://neon.tech) or Vercel Postgres — set `DATABASE_URL` (use the **pooler** connection string).
-- **Gemini**: **Bring your own key** — visitors paste a key in **Settings**; it stays in `sessionStorage` (cleared when the browser closes) and is sent with each chat request. The server does **not** store API keys.
+- **AI keys**: **Bring your own key** — visitors paste a key per provider in **Settings**; it stays in `sessionStorage` (cleared when the browser closes) and is sent with each chat request. The server does **not** store API keys. The chosen provider/model is remembered in `localStorage`.
 - **Privacy**: Anonymous **browser session cookie** scopes chats/quizzes to the current browser session; closing the browser starts fresh. Other visitors cannot see your conversations.
-- **Onboarding**: The home page header prompts visitors to add a Gemini API key before chatting.
+- **Onboarding**: The home page header prompts visitors to add a key for the selected provider before chatting.
 
 ### Vercel environment variables
 
 | Variable | Required | Notes |
 |----------|----------|--------|
 | `DATABASE_URL` | Yes | Neon pooler URL for production |
-| `GEMINI_API_KEY` | No | Omit in production (BYOK). Optional in `.env.local` for local dev only. |
+| `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `DEEPSEEK_API_KEY` | No | Omit in production (BYOK). Optional in `.env.local` for local dev only; a key saved in Settings overrides it. |
 
 ### Deploy steps
 
@@ -77,7 +78,7 @@ An AI-powered study app: learn a topic in **Beginner** and **Deep-dive** modes, 
 | | Local | Production |
 |---|--------|------------|
 | Database | `.env.local` → local Postgres | Vercel → Neon |
-| Gemini key | Settings and/or `GEMINI_API_KEY` in `.env.local` | Settings only (BYOK) |
+| AI keys | Settings and/or `*_API_KEY` in `.env.local` | Settings only (BYOK) |
 
 After pulling these changes, run **`npm run db:migrate`** (or `db:push`) once so `session_id` columns exist.
 
@@ -87,7 +88,7 @@ After pulling these changes, run **`npm run db:migrate`** (or `db:push`) once so
 
 - Node.js
 - PostgreSQL
-- A [Google AI API key](https://ai.google.dev/) (Gemini)
+- An API key for at least one provider: [Gemini](https://aistudio.google.com/apikey), [Claude](https://console.anthropic.com/settings/keys), [OpenAI](https://platform.openai.com/api-keys) or [DeepSeek](https://platform.deepseek.com/api_keys)
 
 ### Setup
 
@@ -101,7 +102,11 @@ After pulling these changes, run **`npm run db:migrate`** (or `db:push`) once so
 
    ```
    DATABASE_URL=postgresql://user:password@localhost:5432/your_db
+   # Optional, any of these (or add keys in Settings instead):
    GEMINI_API_KEY=your_gemini_api_key
+   ANTHROPIC_API_KEY=your_anthropic_api_key
+   OPENAI_API_KEY=your_openai_api_key
+   DEEPSEEK_API_KEY=your_deepseek_api_key
    ```
 
 3. Database:
@@ -153,14 +158,15 @@ npm run build
 | Path | Description |
 |------|-------------|
 | `src/routes/` | Pages: `/`, `/settings`, `/quiz` layout, `/quiz/all`, `/quiz/saved`, `/quiz/$quizId`. |
-| `src/components/` | ChatUI, QuizPanel, ConversationList, HomeIntro, Header. |
-| `src/contexts/GeminiKeyContext.tsx` | BYOK key state (sessionStorage). |
+| `src/components/` | ChatUI, ModelSwitcher, QuizPanel, ConversationList, HomeIntro, Header. |
+| `src/contexts/AiSettingsContext.tsx` | Selected provider/model (localStorage) and per-provider BYOK keys (sessionStorage, via `src/lib/ai-storage.ts`). |
 | `src/contexts/HomeChatContext.tsx` | “New chat” reset when clicking **Quizly** in the header on Home. |
 | `src/lib/anonymous-session.server.ts` | Browser session cookie for chat isolation. |
-| `src/lib/chat.server.ts` | Server function definitions (messages, quizzes, deleteConversation). |
+| `src/lib/chat.functions.ts` | Server function definitions (messages, quizzes, deleteConversation, AI key status). |
 | `src/lib/chat.impl.server.ts` | Chat + delete implementation (DB, AI). |
 | `src/lib/quiz.service.ts` | Quiz CRUD, getQuizzes by conversation, getSaved, getQuizById, LEFT JOIN for nullable conversationId. |
-| `src/lib/gemini.server.ts` | Gemini prompts, `generateReply`, `generateQuizMcqs`. |
+| `src/lib/ai/` | Provider/model catalog (`providers.ts`), key resolution, model factory, `generateReply`, `generateQuizMcqs`. |
+| `src/lib/prompts.server.ts` | System prompts per mode and the quiz prompt. |
 | `src/db/` | Drizzle schema and `drizzle/` migrations. |
 | `scripts/check-quizzes-nullable.ts` | One-off: ensure `quizzes.conversation_id` allows NULL (run it if deleting a chat fails). |
 
