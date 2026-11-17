@@ -16,7 +16,8 @@ import { useHomeChat } from '../contexts/HomeChatContext'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
-  const { ready, provider, model, isConfigured, keyStatus } = useAiSettings()
+  const { ready, provider, model, isConfigured, keyStatus, ownerStatus } =
+    useAiSettings()
   const { goToNewChat } = useHomeChat()
   const location = useLocation()
   const navigate = useNavigate()
@@ -64,41 +65,54 @@ export default function Header() {
             </Link>
           </h1>
         </div>
-        {!ready ? null : !isConfigured && isHome ? (
-          <Link
-            to="/settings"
-            className="ml-4 flex min-w-0 shrink items-center gap-2 rounded-lg border border-accent/50 bg-accent/15 px-3 py-1.5 text-sm text-[#f5f0eb] transition-colors hover:bg-accent/25"
-          >
-            <KeyRound size={16} className="shrink-0 text-accent" aria-hidden />
-            <span className="truncate">
-              <span className="hidden sm:inline">Add your </span>
-              <span className="font-medium underline-offset-2 hover:underline">
-                {providerLabel} API key
+        <div className="flex min-w-0 shrink items-center">
+          {ownerStatus?.isOwner ? (
+            <Link
+              to="/owner"
+              className="ml-4 flex shrink-0 items-center gap-1.5 rounded-lg border border-accent/50 bg-accent/15 px-2.5 py-1.5 text-sm text-[#f5f0eb] transition-colors hover:bg-accent/25"
+              title="Owner mode on"
+              aria-label="Owner mode on"
+            >
+              <KeyRound size={16} className="shrink-0 text-accent" aria-hidden />
+              <span className="hidden sm:inline">Owner</span>
+            </Link>
+          ) : null}
+          {!ready ? null : !isConfigured && isHome ? (
+            <Link
+              to="/settings"
+              className="ml-4 flex min-w-0 shrink items-center gap-2 rounded-lg border border-accent/50 bg-accent/15 px-3 py-1.5 text-sm text-[#f5f0eb] transition-colors hover:bg-accent/25"
+            >
+              <KeyRound size={16} className="shrink-0 text-accent" aria-hidden />
+              <span className="truncate">
+                <span className="hidden sm:inline">Add your </span>
+                <span className="font-medium underline-offset-2 hover:underline">
+                  {providerLabel} API key
+                </span>
+                <span className="hidden md:inline"> in Settings</span>
               </span>
-              <span className="hidden md:inline"> in Settings</span>
-            </span>
-          </Link>
-        ) : isConfigured ? (
-          <Link
-            to="/settings"
-            className="ml-4 flex shrink-0 items-center gap-2 rounded-lg border border-[#c4aea6]/30 bg-black/15 px-3 py-1.5 text-sm text-[#f0e8e4] transition-colors hover:bg-black/25"
-            title={
-              usingBrowserKey
-                ? `${providerLabel} key saved for this browser session`
-                : `${providerLabel} key from server environment`
-            }
-          >
-            <CheckCircle2
-              size={16}
-              className="shrink-0 text-[#d4bdb4]"
-              aria-hidden
-            />
-            <span className="hidden sm:inline">{providerLabel}</span>
-            <span className="max-w-[10rem] truncate font-mono text-xs text-[#e8ddd6]/90">
-              {model}
-            </span>
-          </Link>
-        ) : null}
+            </Link>
+          ) : isConfigured ? (
+            <Link
+              to="/settings"
+              className="ml-4 flex shrink-0 items-center gap-2 rounded-lg border border-[#c4aea6]/30 bg-black/15 px-3 py-1.5 text-sm text-[#f0e8e4] transition-colors hover:bg-black/25"
+              title={
+                usingBrowserKey
+                  ? `${providerLabel} key saved for this browser session`
+                  : `${providerLabel} key from server environment`
+              }
+            >
+              <CheckCircle2
+                size={16}
+                className="shrink-0 text-[#d4bdb4]"
+                aria-hidden
+              />
+              <span className="hidden sm:inline">{providerLabel}</span>
+              <span className="max-w-[10rem] truncate font-mono text-xs text-[#e8ddd6]/90">
+                {model}
+              </span>
+            </Link>
+          ) : null}
+        </div>
       </header>
 
       <aside

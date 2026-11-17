@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OwnerRouteImport } from './routes/owner'
 import { Route as QuizRouteImport } from './routes/quiz'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as QuizIndexRouteImport } from './routes/quiz/index'
@@ -20,6 +21,11 @@ import { Route as QuizSavedRouteImport } from './routes/quiz/saved'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OwnerRoute = OwnerRouteImport.update({
+  id: '/owner',
+  path: '/owner',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuizRoute = QuizRouteImport.update({
@@ -55,6 +61,7 @@ const QuizSavedRoute = QuizSavedRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/owner': typeof OwnerRoute
   '/quiz': typeof QuizRouteWithChildren
   '/settings': typeof SettingsRoute
   '/quiz/$quizId': typeof QuizQuizIdRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/owner': typeof OwnerRoute
   '/settings': typeof SettingsRoute
   '/quiz/$quizId': typeof QuizQuizIdRoute
   '/quiz/all': typeof QuizAllRoute
@@ -73,6 +81,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/owner': typeof OwnerRoute
   '/quiz': typeof QuizRouteWithChildren
   '/settings': typeof SettingsRoute
   '/quiz/$quizId': typeof QuizQuizIdRoute
@@ -84,6 +93,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/owner'
     | '/quiz'
     | '/settings'
     | '/quiz/$quizId'
@@ -92,10 +102,17 @@ export interface FileRouteTypes {
     | '/quiz/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/settings' | '/quiz/$quizId' | '/quiz/all' | '/quiz/saved' | '/quiz'
+    | '/'
+    | '/owner'
+    | '/settings'
+    | '/quiz/$quizId'
+    | '/quiz/all'
+    | '/quiz/saved'
+    | '/quiz'
   id:
     | '__root__'
     | '/'
+    | '/owner'
     | '/quiz'
     | '/settings'
     | '/quiz/$quizId'
@@ -106,6 +123,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  OwnerRoute: typeof OwnerRoute
   QuizRoute: typeof QuizRouteWithChildren
   SettingsRoute: typeof SettingsRoute
 }
@@ -117,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/owner': {
+      id: '/owner'
+      path: '/owner'
+      fullPath: '/owner'
+      preLoaderRoute: typeof OwnerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quiz': {
@@ -182,6 +207,7 @@ const QuizRouteWithChildren = QuizRoute._addFileChildren(QuizRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  OwnerRoute: OwnerRoute,
   QuizRoute: QuizRouteWithChildren,
   SettingsRoute: SettingsRoute,
 }

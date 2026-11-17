@@ -203,7 +203,7 @@ function ProviderKeyRow({ provider }: { provider: AiProviderId }) {
         <p className="mb-2 flex items-start gap-2 text-sm text-amber-900">
           <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-amber-800" aria-hidden />
           <span>
-            Connected via server environment (
+            Owner mode: using the server key (
             <code className="rounded bg-amber-100/80 px-1">{info.envVar}</code>
             ). A key saved here overrides it for this session.
           </span>
